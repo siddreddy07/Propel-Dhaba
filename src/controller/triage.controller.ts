@@ -15,7 +15,7 @@ export const triageController = async (req: Request, res: Response) => {
 
   try {
     const response = await triageService(result.data);
-
+    console.log('Response :',response)
     res.status(200).json(response);
   } catch (error) {
     console.error("Triage request failed", {

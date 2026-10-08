@@ -33,6 +33,7 @@ export const tickets = pgTable("tickets", {
   // Triage results
   category: varchar("category", { length: 50 }),
   severity: varchar("severity", { length: 20 }),
+  refundRequired: boolean("refund_required"),
   replyDraft: text("reply_draft"),
   needsHuman: boolean("needs_human"),
   confidence: real("confidence"),

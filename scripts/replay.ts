@@ -12,8 +12,8 @@ const data = JSON.parse(file);
 const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-const BATCH_SIZE = 3;
-const BATCH_DELAY = 30_000;
+const BATCH_SIZE = process.env.TRIAGE_MODE === "fixture" ? 6 : 3;
+const BATCH_DELAY = process.env.TRIAGE_MODE === "fixture" ? 0 : 30_000;
 
 const results = [];
 

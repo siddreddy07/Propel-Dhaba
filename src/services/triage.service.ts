@@ -8,11 +8,16 @@ import {
   type Ticket,
   type TriageResponse,
 } from "../schemas/triage.schema.js";
+import { classifyFixture } from "./fixture.service.js";
 
 export const triageService = async (
   ticket: Ticket
 ): Promise<TriageResponse> => {
-  const existing = await getExistingTriage(ticket.id);
+
+  try {
+
+    if(!process.env.TRIAGE_MODE || process.env.TRIAGE_MODE === "") {
+      const existing = await getExistingTriage(ticket.id);
   if (existing) return triageResponseSchema.parse(existing);
 
   const claimed = await claimTicket(ticket);
@@ -22,10 +27,20 @@ export const triageService = async (
     if (completed) return triageResponseSchema.parse(completed);
 
     throw new Error("Ticket is already being processed.");
-  }
+  }   
+    }
 
-  try {
-    const { classification, refundDecision } = await classifyTicket(ticket);
+
+    const { classification, refundDecision } = 
+                 process.env.TRIAGE_MODE === "fixture"
+    ? await classifyFixture(ticket)
+    : await classifyTicket(ticket);
+
+
+      console.log("Classification result:", {
+        classification,
+        refundDecision,
+      })
 
 const refund: RefundDecision = refundDecision ?? {
   approved: false,
@@ -37,7 +52,10 @@ const refund: RefundDecision = refundDecision ?? {
 };
 
 const needsHuman = classification.needs_human || refund.needsHuman;
-    const replyDraft = await generateReply(ticket, refund);
+    const replyDraft =
+  process.env.TRIAGE_MODE === "fixture"
+    ? "Thanks for contacting Dhaba. We've received your request and will review it."
+    : await generateReply(ticket, refund);
 
     const response = triageResponseSchema.parse({
       ...classification,
@@ -50,44 +68,47 @@ const needsHuman = classification.needs_human || refund.needsHuman;
       needs_human: needsHuman,
     });
 
-    await db.transaction(async (tx) => {
-      const [updated] = await tx
-        .update(tickets)
-        .set({
-          category: response.category,
-          severity: response.severity,
-          replyDraft: response.reply_draft,
-          needsHuman: response.needs_human,
-          confidence: response.confidence,
-          status: "completed",
-        })
-        .where(
-          and(
-            eq(tickets.id, ticket.id),
-            eq(tickets.status, "processing")
+    if(!process.env.TRIAGE_MODE || process.env.TRIAGE_MODE === "") {
+      await db.transaction(async (tx) => {
+        const [updated] = await tx
+          .update(tickets)
+          .set({
+            category: response.category,
+            severity: response.severity,
+            refundRequired: classification.refund_required,
+            replyDraft: response.reply_draft,
+            needsHuman: response.needs_human,
+            confidence: response.confidence,
+            status: "completed",
+          })
+          .where(
+            and(
+              eq(tickets.id, ticket.id),
+              eq(tickets.status, "processing")
+            )
           )
-        )
-        .returning({ id: tickets.id });
-
-      if (!updated) throw new Error("Ticket processing state changed.");
-
-      await tx
-        .insert(refunds)
-        .values({
-          ticketId: ticket.id,
-          approved: response.refund.approved,
-          amount: response.refund.amount,
-          reason: response.refund.reason,
-        })
-        .onConflictDoUpdate({
-          target: refunds.ticketId,
-          set: {
+          .returning({ id: tickets.id });
+  
+        if (!updated) throw new Error("Ticket processing state changed.");
+  
+        await tx
+          .insert(refunds)
+          .values({
+            ticketId: ticket.id,
             approved: response.refund.approved,
             amount: response.refund.amount,
             reason: response.refund.reason,
-          },
-        });
-    });
+          })
+          .onConflictDoUpdate({
+            target: refunds.ticketId,
+            set: {
+              approved: response.refund.approved,
+              amount: response.refund.amount,
+              reason: response.refund.reason,
+            },
+          });
+      });
+    }
 
     return response;
   } catch (error) {
