@@ -73,7 +73,7 @@ This mode uses saved classification data and reply drafts instead of making live
 
 ## API
 
-### POST `/triage`
+### POST `/api/triage`
 
 Accepts a customer support ticket containing its subject, body, purchase history, and app usage information.
 
