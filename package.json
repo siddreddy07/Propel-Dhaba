@@ -1,0 +1,36 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx src/index.ts",
+    "db:studio": "drizzle-kit studio",
+    "db:push": "drizzle-kit push",
+    "replay": "tsx scripts/replay.ts"
+  },
+  "keywords": [],
+  "type": "module",
+  "dependencies": {
+    "@ai-sdk/groq": "^4.0.58",
+    "@neondatabase/serverless": "^1.2.0",
+    "ai": "^7.0.133",
+    "dotenv": "^18.0.6",
+    "drizzle-orm": "^0.45.3",
+    "express": "^5.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2",
+    "winston": "^3.19.0",
+    "ws": "^8.22.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4",
+    "@types/ws": "^8.18.2",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15"
+  }
+}
