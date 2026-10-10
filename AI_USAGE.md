@@ -2,7 +2,7 @@
 
 ## 1. Tools I Used
 
-I used ChatGPT and OpenCode while building this assignment. I estimate around 80 - 85 % of the code was AI-generated.
+I used ChatGPT and OpenCode while building this assignment. I estimate around 90 - 95 % of the code was AI-generated.
 
 I mainly used ChatGPT to discuss implementation decisions, understand the Vercel AI SDK, and debug issues. OpenCode helped with the agent and tool-calling implementation.
 
